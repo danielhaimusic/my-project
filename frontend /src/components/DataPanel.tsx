@@ -377,17 +377,10 @@ const DataPanel: React.FC<DataPanelProps> = ({ filename }) => {
                               {product.description}
                             </td>
                             <td className="text-right font-mono">
-<<<<<<< HEAD
-                              ${Number(String(product.unit_price).replace(/,/g, '')).toFixed(2)}
-                            </td>
-                            <td className="text-right font-mono font-semibold">
-                              ${Number(String(product.total_price).replace(/,/g, '')).toFixed(2)}
-=======
                               ${Number(product.unit_price).toFixed(2)}
                             </td>
                             <td className="text-right font-mono font-semibold">
                               ${Number(product.total_price).toFixed(2)}
->>>>>>> 0086307 (a)
                             </td>
                           </motion.tr>
                         ))

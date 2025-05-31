@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
-=======
-import React from 'react';
->>>>>>> 0086307 (a)
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
@@ -62,11 +58,7 @@ const FileList: React.FC<FileListProps> = ({ files, selectedFile, onFileSelect, 
             files.map((filename) => (
               <motion.li
                 key={filename}
-<<<<<<< HEAD
                 whileHover={{ backgroundColor: base200 }}
-=======
-                whileHover={{ backgroundColor: '#f3f4f6' }}
->>>>>>> 0086307 (a)
                 transition={{ duration: 0.1 }}
               >
                 <button

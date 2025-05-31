@@ -7,3 +7,5 @@ spacy
 tika
 pytesseract
 spacy-langdetect
+setuptools<81
+python-multipart

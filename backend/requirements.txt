@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+pdf2image
+pdfminer.six
+pydantic
+spacy
+tika
+pytesseract
+spacy-langdetect
+setuptools<81
+python-multipart
+ollama

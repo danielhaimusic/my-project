@@ -1,5 +1,5 @@
 fastapi
-uvicorn[standard]
+uvicorn
 pdf2image
 pdfminer.six
 pydantic

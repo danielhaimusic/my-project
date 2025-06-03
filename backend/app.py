@@ -1,12 +1,15 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import os, uuid
 from extract.pdf_processor import process_pdf
 from extract.openai_pdf_extractor import extract_with_gpt4v_images
 
 UPLOAD_DIR = "uploads"
+STATIC_DIR = "static"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(STATIC_DIR, exist_ok=True)
 
 app = FastAPI()
 app.add_middleware(
@@ -15,6 +18,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# הגשת ה-frontend כ-static
+app.mount("/static", StaticFiles(directory=STATIC_DIR, html=True), name="static")
 
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
@@ -49,4 +55,4 @@ async def get_data(name: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

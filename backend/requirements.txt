@@ -10,3 +10,4 @@ spacy-langdetect
 setuptools<81
 python-multipart
 ollama
+openai

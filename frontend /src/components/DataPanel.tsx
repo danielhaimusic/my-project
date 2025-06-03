@@ -379,12 +379,8 @@ const DataPanel: React.FC<DataPanelProps> = ({ filename }) => {
                               {product.description}
                             </td>
                             <td className="text-right font-mono">{product.quantity}</td>
-                            <td className="text-right font-mono">
-                              ₪{Number(product.unit_price).toFixed(2)}
-                            </td>
-                            <td className="text-right font-mono font-semibold">
-                              ₪{Number(product.total_price).toFixed(2)}
-                            </td>
+                            <td className="text-right font-mono">{product.unit_price}</td>
+                            <td className="text-right font-mono font-semibold">{product.total_price}</td>
                           </motion.tr>
                         ))
                       )}

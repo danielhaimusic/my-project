@@ -16,6 +16,13 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ filename }) => {
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  // Zoom state
+  const [scale, setScale] = useState<number>(1.0);
+  // Drag state for panning
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState<{x: number, y: number} | null>(null);
+  const [offset, setOffset] = useState<{x: number, y: number}>({x: 0, y: 0});
+  const [lastOffset, setLastOffset] = useState<{x: number, y: number}>({x: 0, y: 0});
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -36,6 +43,36 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ filename }) => {
 
   const goToNextPage = () => {
     setPageNumber(prev => Math.min(prev + 1, numPages || 1));
+  };
+
+  // Zoom handlers
+  const zoomIn = () => setScale(s => Math.min(s + 0.2, 2.5));
+  const zoomOut = () => setScale(s => Math.max(s - 0.2, 0.5));
+  const resetZoom = () => setScale(1.0);
+
+  // Pan handlers
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (scale <= 1) return;
+    setIsDragging(true);
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !dragStart) return;
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    setOffset({ x: lastOffset.x + dx, y: lastOffset.y + dy });
+  };
+  const handleMouseUp = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    setLastOffset(offset);
+    setDragStart(null);
+  };
+  const handleMouseLeave = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    setLastOffset(offset);
+    setDragStart(null);
   };
 
   if (!filename) {
@@ -102,7 +139,6 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ filename }) => {
             <Eye className="w-5 h-5 text-primary" />
             {filename}
           </motion.h3>
-          
           <AnimatePresence>
             {numPages && (
               <motion.div
@@ -112,6 +148,39 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ filename }) => {
                 exit={{ scale: 0, opacity: 0 }}
                 transition={{ duration: 0.3 }}
               >
+                {/* Zoom controls */}
+                <motion.button
+                  onClick={zoomOut}
+                  className="btn btn-xs btn-outline mx-1"
+                  title="הקטן"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  −
+                </motion.button>
+                <span className="text-xs w-10 text-center select-none">{Math.round(scale * 100)}%</span>
+                <motion.button
+                  onClick={zoomIn}
+                  className="btn btn-xs btn-outline mx-1"
+                  title="הגדל"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  +
+                </motion.button>
+                <motion.button
+                  onClick={resetZoom}
+                  className="btn btn-xs btn-ghost mx-1"
+                  title="איפוס זום"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  100%
+                </motion.button>
+                {/* Page navigation */}
                 <motion.button
                   onClick={goToPrevPage}
                   disabled={pageNumber <= 1}
@@ -122,7 +191,6 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ filename }) => {
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </motion.button>
-                
                 <motion.span
                   className="text-sm font-medium min-w-20 text-center"
                   key={pageNumber}
@@ -132,7 +200,6 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ filename }) => {
                 >
                   {pageNumber} מתוך {numPages}
                 </motion.span>
-                
                 <motion.button
                   onClick={goToNextPage}
                   disabled={pageNumber >= numPages}
@@ -209,20 +276,42 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ filename }) => {
                   exit={{ opacity: 0, scale: 1.1 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <Page
-                    pageNumber={pageNumber}
-                    loading={
-                      <motion.div
-                        className="flex items-center justify-center p-8 text-right w-full"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                      >
-                        <Loader className="w-6 h-6 animate-spin text-primary" />
-                      </motion.div>
-                    }
-                    className="shadow-md w-full max-w-full h-auto"
-                    width={Math.min(window.innerWidth * 0.4, 600)}
-                  />
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      overflow: 'hidden',
+                      cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
+                      userSelect: isDragging ? 'none' : 'auto',
+                    }}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <div
+                      style={{
+                        transform: `translate(${offset.x}px, ${offset.y}px)`,
+                        transition: isDragging ? 'none' : 'transform 0.2s',
+                        display: 'inline-block',
+                      }}
+                    >
+                      <Page
+                        pageNumber={pageNumber}
+                        loading={
+                          <motion.div
+                            className="flex items-center justify-center p-8 text-right w-full"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                          >
+                            <Loader className="w-6 h-6 animate-spin text-primary" />
+                          </motion.div>
+                        }
+                        className="shadow-md w-full max-w-full h-auto"
+                        scale={scale}
+                      />
+                    </div>
+                  </div>
                 </motion.div>
               </AnimatePresence>
             </Document>
